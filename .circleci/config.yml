@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  silta: silta/silta@dev:master
+  silta: silta/silta@dev:feature/slt-264-multi-stage-shell
 
 workflows:
   version: 2
