@@ -9,3 +9,6 @@ varnish:
 
 elasticsearch:
   enabled: true
+
+domainPrefixes:
+  - foo
