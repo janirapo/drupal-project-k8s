@@ -172,7 +172,7 @@ php:
       fi
 
   tests:
-    command: 'echo "Running tests"'
+    command: 'drush status'
 
   # Pass additional environment variables to all php containers as key-value pairs.
   env: {}
