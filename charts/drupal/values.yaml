@@ -171,6 +171,9 @@ php:
         fi
       fi
 
+  tests:
+    command: 'echo "Running tests"'
+
   # Pass additional environment variables to all php containers as key-value pairs.
   env: {}
 

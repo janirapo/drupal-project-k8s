@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-integration-tests"
+  labels:
+    {{- include "drupal.release_labels" . | nindent 4 }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": "test"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+spec:
+  completions: 1
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: integration-tests
+        {{- include "drupal.php-container" . | nindent 8 }}
+        command: ["/bin/bash", "-c"]
+        args:
+        - {{ .Values.php.tests.command | quote }}
+        volumeMounts:
+          {{- include "drupal.volumeMounts" . | nindent 10 }}
+        resources:
+          {{- .Values.php.resources | toYaml | nindent 10 }}
+      {{- include "drupal.imagePullSecrets" . | nindent 6 }}
+      volumes:
+        {{- include "drupal.volumes" . | nindent 8 }}
