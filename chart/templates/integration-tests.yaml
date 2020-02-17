@@ -1,5 +1,5 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: v1
+kind: Pod
 metadata:
   name: "{{ .Release.Name }}-integration-tests"
   labels:
@@ -8,23 +8,19 @@ metadata:
     # This is what defines this resource as a hook. Without this line, the
     # job is considered part of the release.
     "helm.sh/hook": "test"
-    "helm.sh/hook-delete-policy": "before-hook-creation"
+    "helm.sh/hook-delete-policy": "success"
 spec:
-  completions: 1
-  backoffLimit: 0
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: integration-tests
-        {{- include "drupal.php-container" . | nindent 8 }}
-        command: ["/bin/bash", "-c"]
-        args:
-        - {{ .Values.php.tests.command | quote }}
-        volumeMounts:
-          {{- include "drupal.volumeMounts" . | nindent 10 }}
-        resources:
-          {{- .Values.php.resources | toYaml | nindent 10 }}
-      {{- include "drupal.imagePullSecrets" . | nindent 6 }}
-      volumes:
-        {{- include "drupal.volumes" . | nindent 8 }}
+  restartPolicy: Never
+  containers:
+  - name: integration-tests
+    {{- include "drupal.php-container" . | nindent 4 }}
+    command: ["/bin/bash", "-c"]
+    args:
+    - {{ .Values.php.tests.command | quote }}
+    volumeMounts:
+      {{- include "drupal.volumeMounts" . | nindent 6 }}
+    resources:
+      {{- .Values.php.resources | toYaml | nindent 6 }}
+  {{- include "drupal.imagePullSecrets" . | nindent 2 }}
+  volumes:
+    {{- include "drupal.volumes" . | nindent 4 }}
