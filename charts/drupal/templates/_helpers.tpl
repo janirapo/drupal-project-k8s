@@ -317,3 +317,15 @@ fi
   {{ end -}}
   {{- end }}
 {{- end }}
+
+
+{{- define "drupal.pre-delete-command" -}}
+set -e
+
+{{ range $index, $mount := .Values.mounts -}}
+{{- if eq $mount.enabled true -}}
+rm -rfv "{{ $mount.mountPath }}"
+{{ end -}}
+{{- end }}
+
+{{- end }}

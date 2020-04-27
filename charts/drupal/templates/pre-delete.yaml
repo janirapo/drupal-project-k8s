@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-pre-delete"
+  labels:
+    {{- include "drupal.release_labels" . | nindent 4 }}
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": "pre-delete"
+spec:
+  completions: 1
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      enableServiceLinks: false
+      containers:
+      - name: pre-delete
+        {{- include "drupal.php-container" . | nindent 8 }}
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+            {{ include "drupal.pre-delete-command" . | nindent 12 }}
+        volumeMounts:
+          {{- include "drupal.volumeMounts" . | nindent 10 }}
+        resources:
+          {{- .Values.php.postinstall.resources | toYaml | nindent 10 }}
+      {{- include "drupal.imagePullSecrets" . | nindent 6 }}
+      volumes:
+        {{- include "drupal.volumes" . | nindent 8 }}
