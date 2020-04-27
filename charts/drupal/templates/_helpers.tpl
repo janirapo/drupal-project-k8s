@@ -324,7 +324,7 @@ set -e
 
 {{ range $index, $mount := .Values.mounts -}}
 {{- if eq $mount.enabled true -}}
-rm -rfv "{{ $mount.mountPath }}"
+rm -rfv "{{ $mount.mountPath }}/*"
 {{ end -}}
 {{- end }}
 
