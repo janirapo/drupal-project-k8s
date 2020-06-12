@@ -24,6 +24,15 @@ $settings['file_scan_ignore_directories'] = [
 ];
 
 /**
+ * Override purge settings with varnish host (replace purger id)
+ */
+if (getenv('SILTA_CLUSTER')) {
+  if (getenv('VARNISH_ADMIN_HOST')) {
+    $config['varnish_purger.settings.c9f23afd3f']['hostname'] = trim(getenv('VARNISH_ADMIN_HOST'));
+  }
+}
+
+/**
  * Load local development override configuration, if available.
  *
  * Use settings.local.php to override variables on secondary (staging,
