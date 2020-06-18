@@ -6,8 +6,7 @@ metadata:
     {{- include "drupal.release_labels" . | nindent 4 }}
 data:
   gdpr-dump: |
-    [mysqldump]
-    gdpr-replacements='{{ .Values.gdprDump | toJson }}'
+    {{ .Values.gdprDump | toYaml | nindent 4}}
 
   settings_silta_php: |{{ .Files.Get "files/settings.silta.php" | nindent 4 }}
 

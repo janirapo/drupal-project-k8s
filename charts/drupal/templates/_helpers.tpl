@@ -34,6 +34,10 @@ ports:
   mountPath: /usr/local/etc/php-fpm.d/zz-custom.conf
   readOnly: false
   subPath: php_fpm_d_custom
+- name: config
+  mountPath: /app/gdpr-dump.yaml
+  readOnly: true
+  subPath: gdpr-dump
 {{- end }}
 
 {{- define "drupal.volumes" -}}
