@@ -1,6 +1,6 @@
 {{- if .Values.ssl.enabled }}
 {{- if has .Values.ssl.issuer (list "letsencrypt" "letsencrypt-staging") }}
-apiVersion: {{- include "cert-manager.certificate-version" }}
+{{- include "cert-manager.certificate-version" . }}
 kind: Certificate
 metadata:
   name: {{ .Release.Name }}-crt
@@ -21,7 +21,7 @@ spec:
           - {{ template "drupal.domain" . }}
 ---
 {{- range $index, $prefix := .Values.domainPrefixes }}
-apiVersion: {{- include "cert-manager.certificate-version" }}
+{{- include "cert-manager.certificate-version" $ }}
 kind: Certificate
 metadata:
   name: {{ $.Release.Name }}-crt-p{{ $index }}
@@ -44,7 +44,7 @@ spec:
 {{- end }}
 
 {{- else if eq .Values.ssl.issuer "selfsigned" }}
-apiVersion: {{- include "cert-manager.certificate-version" }}
+{{- include "cert-manager.certificate-version" . }}
 kind: Certificate
 metadata:
   name: {{ .Release.Name }}-crt
@@ -83,7 +83,7 @@ data:
 {{- if $domain.ssl }}
 {{- if $domain.ssl.enabled }}
 {{- if has $domain.ssl.issuer (list "letsencrypt" "letsencrypt-staging") }}
-apiVersion: {{- include "cert-manager.certificate-version" }}
+{{- include "cert-manager.certificate-version" $ }}
 kind: Certificate
 metadata:
   name: {{ $.Release.Name }}-crt-{{ $index }}
@@ -105,7 +105,7 @@ spec:
 ---
 
 {{- else if eq $domain.ssl.issuer "selfsigned" }}
-apiVersion: {{- include "cert-manager.certificate-version" }}
+{{- include "cert-manager.certificate-version" $ }}
 kind: Certificate
 metadata:
   name: {{ $.Release.Name }}-crt-{{ $index }}

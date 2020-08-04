@@ -447,10 +447,10 @@ set -e
 {{- end }}
 
 
-{{- define "cert-manager.certificate-version" -}}
-{{ if not empty (lookup "v1alpha1" "crd" "" "certificates.certmanager.k8s.io") -}}
-certmanager.k8s.io/v1alpha3
-{{ else }}
-certmanager.k8s.io/v1alpha2
+{{- define "cert-manager.certificate-version" }}
+{{- if (lookup "certmanager.k8s.io/v1alpha1" "certificates.certmanager.k8s.io" "" "") -}}
+apiVersion: certmanager.k8s.io/v1alpha1
+{{- else -}}
+apiVersion: cert-manager.io/v1alpha2
 {{- end -}}
 {{- end }}

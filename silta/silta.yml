@@ -8,14 +8,21 @@ varnish:
   enabled: false
 
 elasticsearch:
-  enabled: true
+  enabled: false
 
 memcached:
-  enabled: true
+  enabled: false
 
 mounts:
   private-files:
-    enabled: true
+    enabled: false
+  public-files:
+    enabled: false
+
+referenceData:
+  enabled: false
+mariadb:
+  enabled: false
 
 # Allow access from another namespace for testing purposes.
 silta-release:
@@ -36,5 +43,5 @@ silta-release:
               name: drupal-project
 
   proxy:
-    enabled: true
+    enabled: false
     no_proxy: ".example.com"
