@@ -28,7 +28,7 @@ commands:
       - run:
           name: Open up a tunnel, test the connection
           command: |
-            ssh -D 1337 -C -N -q -f "$TUNNEL_USER_HOST"
+            ssh StrictHostKeyChecking=accept-new -D 1337 -C -N -q -f "$TUNNEL_USER_HOST"
             http_proxy=socks5h://localhost:1337 HTTPS_PROXY=socks5h://localhost:1337 ALL_PROXY=socks5h://localhost:1337 curl ipinfo.io/ip
 
 
