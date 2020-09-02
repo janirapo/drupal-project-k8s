@@ -8,6 +8,30 @@ executors:
     docker:
       - image: wunderio/silta-circleci:latest
 
+commands:
+  set-up-socks-proxy:
+    parameters:
+      private-key:
+        type: string
+        default: ''
+      public-key:
+        type: string
+        default: ''
+      host:
+        type: string
+        default: ''
+    steps:
+      - run:
+          name: Add SSH private-key
+          command: |
+            echo -e "$TUNNEL_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+      - run:
+          name: Open up a tunnel, test the connection
+          command: |
+            ssh -D 1337 -C -N -q -f "$TUNNEL_USER_HOST"
+            http_proxy=socks5h://localhost:1337 HTTPS_PROXY=socks5h://localhost:1337 ALL_PROXY=socks5h://localhost:1337 curl ipinfo.io/ip
+
+
 workflows:
   version: 2
   commit:
@@ -32,6 +56,7 @@ workflows:
           codebase-build:
             - silta/drupal-composer-install
             - silta/npm-install-build
+            - set-up-socks-proxy
           pre-release:
             - run:
                 name: Build local helm chart
