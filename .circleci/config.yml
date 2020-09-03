@@ -29,7 +29,11 @@ commands:
           name: Open up a tunnel
           command: |
             ssh -o StrictHostKeyChecking=accept-new -D 1337 -C -N -q -f "$TUNNEL_USER_HOST"
-            #echo "export HTTPS_PROXY=socks5://localhost:1337" >> "$BASH_ENV"
+            echo 'export HTTPS_PROXY=socks5://localhost:1337' >> $BASH_ENV
+            gcloud config set proxy/type socks5
+            gcloud config set proxy/address 127.0.0.1
+            gcloud config set proxy/port 1337
+            #echo 'export NO_PROXY=accounts.google.com,cloudresourcemanager.googleapis.com,iam.googleapis.com,storage.googleapis.com,www.googleapis.com,.google.com:$NO_PROXY' >> "$BASH_ENV"
             echo "alias kubectl=\"HTTPS_PROXY=socks5://localhost:1337 kubectl\"" >> "$BASH_ENV"
             echo "alias helm=\"HTTPS_PROXY=socks5://localhost:1337 helm\"" >> "$BASH_ENV"
 
