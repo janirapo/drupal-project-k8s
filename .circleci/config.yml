@@ -10,32 +10,28 @@ executors:
 
 commands:
   set-up-socks-proxy:
-    parameters:
-      private-key:
-        type: string
-        default: ''
-      public-key:
-        type: string
-        default: ''
-      host:
-        type: string
-        default: ''
     steps:
       - run:
           name: Add SSH private-key
           command: |
-            echo -e "$TUNNEL_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+            if [[ -n "$TUNNEL_PRIVATE_KEY" ]]; then
+              echo -e "$TUNNEL_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+            else
+              echo "Private key is not supplied. Skipping..."
+            fi
+            
       - run:
           name: Open up a tunnel
           command: |
-            ssh -o StrictHostKeyChecking=accept-new -D 1337 -C -N -q -f "$TUNNEL_USER_HOST"
-            echo 'export HTTPS_PROXY=socks5://localhost:1337' >> $BASH_ENV
-            gcloud config set proxy/type socks5
-            gcloud config set proxy/address 127.0.0.1
-            gcloud config set proxy/port 1337
-            #echo 'export NO_PROXY=accounts.google.com,cloudresourcemanager.googleapis.com,iam.googleapis.com,storage.googleapis.com,www.googleapis.com,.google.com:$NO_PROXY' >> "$BASH_ENV"
-            echo "alias kubectl=\"HTTPS_PROXY=socks5://localhost:1337 kubectl\"" >> "$BASH_ENV"
-            echo "alias helm=\"HTTPS_PROXY=socks5://localhost:1337 helm\"" >> "$BASH_ENV"
+            if [[ -n "$TUNNEL_USER_HOST" ]]; then
+              ssh -o StrictHostKeyChecking=accept-new -D 1337 -C -N -q -f "$TUNNEL_USER_HOST"
+              echo 'export HTTPS_PROXY=socks5://localhost:1337' >> $BASH_ENV
+              gcloud config set proxy/type socks5
+              gcloud config set proxy/address 127.0.0.1
+              gcloud config set proxy/port 1337
+            else
+              echo "No proxy host defined. Skipping..."
+            fi
 
 workflows:
   version: 2
