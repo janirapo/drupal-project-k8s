@@ -79,6 +79,9 @@
         },
         "composer-exit-on-patch-failure": true,
         "patches": {
+            "drupal/varnish_purge": {
+                "Config export meta": "https://www.drupal.org/files/issues/2020-06-05/3146499-2.patch"
+            }
         }
     }
 }
