@@ -21,7 +21,9 @@
         "cweagans/composer-patches": "^1.6",
         "drupal/core-composer-scaffold": "^9.0",
         "drupal/core-recommended": "^9.0",
+        "drupal/purge": "^3.0",
         "drupal/simplei": "^1.2",
+        "drupal/varnish_purge": "^2.0",
         "drush/drush": "^10.0",
         "vlucas/phpdotenv": "^5.0",
         "webflo/drupal-finder": "^1.2"
