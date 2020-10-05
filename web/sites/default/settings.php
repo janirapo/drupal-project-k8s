@@ -26,10 +26,8 @@ $settings['file_scan_ignore_directories'] = [
 /**
  * Override purge settings with varnish host (replace purger id)
  */
-if (getenv('SILTA_CLUSTER')) {
-  if (getenv('VARNISH_ADMIN_HOST')) {
-    $config['varnish_purger.settings.c9f23afd3f']['hostname'] = trim(getenv('VARNISH_ADMIN_HOST'));
-  }
+if (getenv('SILTA_CLUSTER') && getenv('VARNISH_ADMIN_HOST')) {
+  $config['varnish_purger.settings.1b619ba479']['hostname'] = trim(getenv('VARNISH_ADMIN_HOST'));
 }
 
 /**
