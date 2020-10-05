@@ -27,7 +27,7 @@ $settings['file_scan_ignore_directories'] = [
  * Override purge settings with varnish host (replace purger id)
  */
 if (getenv('SILTA_CLUSTER') && getenv('VARNISH_ADMIN_HOST')) {
-  $config['varnish_purger.settings.1b619ba479']['hostname'] = trim(getenv('VARNISH_ADMIN_HOST')) . '.drupal-project-k8s';
+  $config['varnish_purger.settings.1b619ba479']['hostname'] = trim(getenv('VARNISH_ADMIN_HOST'));
 }
 
 /**
