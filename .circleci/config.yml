@@ -7,6 +7,11 @@ executors:
   silta-latest:
     docker:
       - image: wunderio/silta-circleci:latest
+  silta-node-14:
+    docker:
+      - image: wunderio/silta-circleci:latest
+        environment:
+          BUILDER_BASE_IMAGE: circleci/php:7.3.23-cli-node
 
 workflows:
   version: 2
@@ -22,8 +27,8 @@ workflows:
       - silta/drupal-build-deploy: &build-deploy
           name: build-deploy
 
-          # Use the latest orb version.
-          executor: silta-latest
+          # Use the custom orb version.
+          executor: silta-node-14
 
           # Use a local chart during development.
           chart_name: "./charts/drupal"
