@@ -27,7 +27,7 @@ workflows:
       - silta/drupal-build-deploy: &build-deploy
           name: build-deploy
 
-          # Use the custom orb version.
+          # Use the custom orb version
           executor: silta-node-14
 
           # Use a local chart during development.
