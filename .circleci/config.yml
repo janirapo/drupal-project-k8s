@@ -10,8 +10,8 @@ executors:
   silta-node-14:
     docker:
       - image: wunderio/silta-circleci:latest
-        environment:
-          BUILDER_BASE_IMAGE: circleci/php:7.3.23-cli-node
+    environment:
+      BUILDER_BASE_IMAGE: circleci/php:7.3.23-cli-node
 
 workflows:
   version: 2
