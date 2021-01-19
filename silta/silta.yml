@@ -8,7 +8,7 @@ varnish:
   enabled: false
 
 elasticsearch:
-  enabled: true
+  enabled: false
 
 memcached:
   enabled: false
