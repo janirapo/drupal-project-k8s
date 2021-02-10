@@ -1,5 +1,5 @@
 {{- $ingress := .Values.ingress.default }}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ .Release.Name }}-drupal
@@ -84,7 +84,7 @@ spec:
 {{- end }}
 
 {{- if $ingress_in_use }}
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $.Release.Name }}-drupal-{{ $ingress_index }}
