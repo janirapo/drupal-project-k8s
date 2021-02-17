@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  silta: silta/silta@dev:master
+  silta: silta/silta@dev:orb2bash
 
 executors:
   cicd73:
@@ -12,7 +12,13 @@ executors:
       - image: eu.gcr.io/silta-images/cicd:circleci-php7.4-node14-composer1-v0.1
   cicd80:
     docker:
-      - image: eu.gcr.io/silta-images/cicd:circleci-php8.0-node14-composer2-v0.1
+      # - image: eu.gcr.io/silta-images/cicd:circleci-php8.0-node14-composer2-v0.1
+      - image: eu.gcr.io/silta-images/cicd:circleci-php8.0-node14-composer2-custom-v0.1
+        # Init commands (TODO - Move to builder image)
+        #command: |
+        #  curl -o /opt/silta-cicd.sh https://raw.githubusercontent.com/wunderio/silta-circleci/orb2bash/ci-cd/latest.sh
+        #  source /opt/silta-cicd.sh
+        # shell: 
 
 workflows:
   version: 2
