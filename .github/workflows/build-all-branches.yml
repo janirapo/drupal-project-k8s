@@ -1,0 +1,446 @@
+name: Build and deploy
+
+on: 
+  push:
+    branches:
+      - feature/aws-cluster/ga-build
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      GCLOUD_CLUSTER_NAME: ${{ secrets.GCLOUD_CLUSTER_NAME }}
+      DOCKER_REPO_HOST: ${{ secrets.DOCKER_REPO_HOST }}
+      DOCKER_REPO_PROJ: ${{ secrets.DOCKER_REPO_PROJ }}
+      DB_ROOT_PASS: ${{ secrets.DB_ROOT_PASS }}
+      DB_USER_PASS: ${{ secrets.DB_USER_PASS }}
+      VPN_IP: ${{ secrets.VPN_IP }}
+      GITAUTH_USERNAME: ${{ secrets.GITAUTH_USERNAME }}
+      GITAUTH_PASSWORD: ${{ secrets.GITAUTH_PASSWORD }}
+      CLUSTER_DOMAIN: ${{ secrets.CLUSTER_DOMAIN }}
+    
+    # Run custom builder img
+    container: 
+      image: eu.gcr.io/silta-images/cicd:circleci-php8.0-node14-composer2-custom-v0.1
+    
+    steps:
+
+    - name: Checkout code from repository
+      uses: actions/checkout@v2
+
+    - name: Codebase build
+      shell: bash
+      run: |
+        #!/bin/bash
+        set -ex
+
+        # https://docs.github.com/en/actions/reference/environment-variables#default-environment-variables
+
+        ### drupal-composer-install
+        # install-dev-dependencies: true
+        composer_install_dev_dependencies=true
+        #
+
+        if [ "$composer_install_dev_dependencies" = true ]; then
+          composer install -n --prefer-dist --ignore-platform-reqs --optimize-autoloader
+        else
+          composer install -n --prefer-dist --ignore-platform-reqs --no-dev --optimize-autoloader
+        fi
+
+        ### npm-install-build
+        # build-command = npm run build
+        # path = .  
+        npm_build_command="npm run build"
+        npm_build_path="."
+        #
+
+        cd $npm_build_path
+        $npm_build_command
+
+        ### TODO: decrypt-files
+        #
+
+        ### silta-setup:
+        # release-suffix: ""
+        # steps: 
+        #   TODO: set-up-socks-proxy
+        #   docker-login
+        #   gcloud-login
+        #   set-release-name
+
+        ## docker-login
+        # env: 
+        # DOCKER_REPO_PROJ
+        #
+        # TODO: use cicd_docker_login
+        if [ -z "$GCLOUD_KEY_JSON$AWS_SECRET_ACCESS_KEY" ]
+        then
+            echo "Cloud credentials \$GCLOUD_KEY_JSON or \$AWS_SECRET_ACCESS_KEY are empty, have you set a context for this job correctly?"
+            exit 1
+        else
+            # GCR login
+            if [ ! -z "$GCLOUD_KEY_JSON" ]
+            then
+                printenv GCLOUD_KEY_JSON | docker login -u _json_key --password-stdin "https://$DOCKER_REPO_HOST"
+            fi
+            # ECR Login 
+            if [ ! -z "$AWS_SECRET_ACCESS_KEY" ]
+            then
+                aws ecr get-login --no-include-email | bash
+            fi
+        fi
+
+        ## gcloud-login
+        if [ ! -z "$GCLOUD_KEY_JSON" ]
+        then
+          # Save key, authenticate and set compute zone.
+          printenv GCLOUD_KEY_JSON > "$HOME/gcloud-service-key.json"
+          gcloud auth activate-service-account --key-file="$HOME/gcloud-service-key.json" --project "$GCLOUD_PROJECT_NAME"
+
+          if [[ -n "$GCLOUD_COMPUTE_REGION" ]]; then
+            location="--region $GCLOUD_COMPUTE_REGION"
+          else
+            location="--zone $GCLOUD_COMPUTE_ZONE"
+          fi
+
+          # Updates a kubeconfig file with appropriate credentials and endpoint information.
+          gcloud container clusters get-credentials "$GCLOUD_CLUSTER_NAME" $location --project "$GCLOUD_PROJECT_NAME"
+
+        elif [ ! -z "$AWS_SECRET_ACCESS_KEY" ]
+        then
+          aws eks update-kubeconfig --name $GCLOUD_CLUSTER_NAME --region $AWS_REGION
+        fi
+
+        ## set-release-name
+        # release_suffix=""
+        release_suffix=""
+        cicd_repository_name=$GITHUB_REPOSITORY
+        cicd_branch_name=${GITHUB_REF#refs/heads/}
+        # 
+        # Make sure namespace is lowercase.
+        namespace="$(basename ${cicd_repository_name})"
+        
+        # Create the namespace if it doesn't exist.
+        if ! kubectl get namespace "$namespace" &>/dev/null ; then
+          kubectl create namespace "$namespace"
+        fi
+
+        # Tag the namespace if it isn't already tagged.
+        if ! kubectl get namespace -l name=$namespace --no-headers | grep $namespace &>/dev/null ; then
+          kubectl label namespace "$namespace" "name=$namespace" --overwrite
+        fi
+
+        # Make sure release name is lowercase without special characters.
+        branchname_lower="${cicd_branch_name,,}"
+        release_name="${branchname_lower//[^[:alnum:]]/-}"
+
+        # If name is too long, truncate it and append a hash
+        if [ ${#release_name} -ge 40 ]; then
+          release_name="$(printf $release_name | cut -c 1-35)-$(printf $branchname_lower | shasum -a 256 | cut -c 1-4 )"
+        fi
+
+        silta_environment_name="${cicd_branch_name,,}"
+
+        if [[ -n "$release_suffix" ]]; then
+          release_name="${release_name}-${release_suffix}"
+          silta_environment_name="${cicd_branch_name,,}-${release_suffix}"
+        fi
+
+        # echo "export RELEASE_NAME='$release_name'" >> "$BASH_ENV"
+        # echo "export NAMESPACE='$namespace'" >> "$BASH_ENV"
+        # echo "export SILTA_ENVIRONMENT_NAME='$silta_environment_name'" >> "$BASH_ENV"
+
+        export RELEASE_NAME="${release_name}"
+        export NAMESPACE="${namespace}"
+        export SILTA_ENVIRONMENT_NAME="${silta_environment_name}"
+
+        echo "The release name for this branch is \"$release_name\" in the \"$namespace\" namespace"
+
+        if helm status -n "${namespace}" "${release_name}" > /dev/null  2>&1
+        then
+          current_chart_version=$(helm history -n "${namespace}" "${release_name}" --max 1 --output json | jq -r '.[].chart')
+          # echo "export CURRENT_CHART_VERSION='$current_chart_version'" >> "$BASH_ENV"
+          export CURRENT_CHART_VERSION='$current_chart_version'
+
+          echo "There is an existing chart with version $current_chart_version"
+        fi
+
+        ### drupal-docker-build
+        # nginx_build_context: web
+        # steps: 
+        #   - dockerfile: silta/nginx.Dockerfile
+        #     identifier: nginx
+        #   - dockerfile: silta/php.Dockerfile
+        #     identifier: php
+        #   - dockerfile: silta/shell.Dockerfile
+        #     identifier: shell
+        
+        ####
+        function build_docker_image {
+          # env:
+          # DOCKER_REPO_HOST
+          # DOCKER_REPO_PROJ
+          # NAMESPACE
+          #
+          # parameters:
+          # docker-hash-prefix
+          #   default: v1
+          # dockerfile
+          # expose_image
+          #   default: true
+          #   description: Whether to export an environment variable with the image name. This can be used by helm charts (currently only the frontend chart) to automatically adding the image reference to the release values.
+          # identifier
+          # path
+          #   default: ""
+          #   description: The path to be used as the context when building the docker image. An empty directory is used by default.
+          # tag
+          #   default: ""
+          #   description: If provided, the given tag will be used for the docker image. By default a hash of the codebase (content of the path excluding files matched by .dockerignore) will be created.
+
+          docker_hash_prefix=${1:-v1}
+          dockerfile=${2:-}
+          expose_image=${3:-true}
+          identifier=${4:-}
+          path=${5:-.}
+          tag=${6:-}
+
+          image_url="${DOCKER_REPO_HOST}/${DOCKER_REPO_PROJ}/${NAMESPACE}-$identifier"
+
+          # Only exclude files if they exist
+          exclude_dockerignore=""
+          if [ -f "${path}/.dockerignore" ]
+          then
+            exclude_dockerignore=--exclude-from="${path}/.dockerignore"
+          fi
+
+          if [ -n "${path}" ]; then
+            path="${path}"
+          else
+            # No path is specified, build from an empty directory.
+            # Clean up tmp build folder if exists
+            if [ -d "/tmp/empty" ]; then
+              rm -rf "/tmp/empty"
+            fi
+
+            mkdir "/tmp/empty"
+            path="/tmp/empty"
+          fi
+
+          if [ -n "${tag}" ]; then
+            # A tag has been specified, use it.
+            image_tag="${tag}"
+          else
+            # Take a hash of all files in the folder except those ignored by docker.
+            # Also make sure modification time or order play no role.
+            image_tag=$(tar \
+              --sort=name \
+              $exclude_dockerignore \
+              --exclude=vendor/composer \
+              --exclude=vendor/autoload.php \
+              --mtime='2000-01-01 00:00Z' \
+              --clamp-mtime \
+              -cf - "$path" "${dockerfile}" | sha1sum | cut -c 1-40)
+            image_tag="${docker_hash_prefix}-${image_tag}"
+          fi
+
+          if [ ! -z "$GCLOUD_KEY_JSON" ] && gcloud container images list-tags "$image_url" | grep -q "$image_tag"; then
+            echo "Image $image_url:$image_tag has already been built, the existing image from the Docker repository will be used."
+          
+          elif [ ! -z "$AWS_SECRET_ACCESS_KEY" ] && aws ecr describe-images --repository-name="${DOCKER_REPO_PROJ}/${NAMESPACE}-${identifier}" --image-ids="imageTag=$image_tag" 2>&1 > /dev/null ; then
+            echo "Image $image_url:$image_tag has already been built, the existing image from the Docker repository will be used."
+          
+          else
+            docker build -t "$image_url:$image_tag" -f "$dockerfile" "$path"
+
+            if [ ! -z "$AWS_SECRET_ACCESS_KEY" ]
+            then
+              # Create repository (Because ECR requires a dedicated repository per project)
+              if ! aws ecr describe-repositories --repository-name "${DOCKER_REPO_PROJ}/${NAMESPACE}-${identifier}" &>/dev/null ; then
+                aws ecr create-repository --repository-name "${DOCKER_REPO_PROJ}/${NAMESPACE}-${identifier}"
+              fi
+            fi  
+
+            docker push "$image_url:$image_tag"
+          fi
+
+          if [ "${expose_image}" = 'true' ]; then
+            # Persist the image identifier and tag so it is available during deployment.
+            # echo "export ${identifier}_IMAGE_IDENTIFIER=${identifier}" >> "$BASH_ENV"
+            # echo "export ${identifier}_HASH='$image_tag'" >> "$BASH_ENV"
+            export ${identifier}_IMAGE_IDENTIFIER=${identifier}
+            export ${identifier}_HASH=${image_tag}
+          fi
+        }
+        ####
+
+        echo "DEBUG"
+        pwd
+        ls ./
+        echo "DEBUG"
+
+        build_docker_image "v4" "silta/nginx.Dockerfile" true "nginx" "web"
+        build_docker_image "v4" "silta/php.Dockerfile" true "php"
+        build_docker_image "v4" "silta/shell.Dockerfile" true "shell"
+        
+        ###
+        # local chart only
+        # name: Build local helm chart
+        helm repo add elastic https://helm.elastic.co
+        helm repo add codecentric https://codecentric.github.io/helm-charts
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm dependency build ./charts/drupal
+        
+        ### 
+        # local chart only
+        # name: Dry-run helm install
+        # helm install --dry-run --generate-name ./charts/drupal --values charts/drupal/test.values.yaml
+
+        ### drupal-helm-deploy
+        # parameters:
+        #   chart_name: drupal
+        #   chart_repository: ""
+        #   cluster_domain: $CLUSTER_DOMAIN
+        #   silta_config: silta.yaml,...?
+        
+        # chart_version=""
+        # chart_name="drupal"
+        # chart_repository=""
+        # silta_config="silta/silta.yml"
+        # repository_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
+        chart_version=""
+        chart_name="./charts/drupal"
+        chart_repository=""
+        silta_config="silta/silta.yml,silta/silta-aws.yml"
+        repository_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
+
+        #Detect pods in FAILED state
+        function show_failing_pods() {
+          failed_pods=$(kubectl get pod -l "release=$RELEASE_NAME,cronjob!=true" -n "$NAMESPACE" --no-headers | grep -Ev '([0-9]+)/\1' | grep -Eo '^[^ ]+')
+          if [[ ! -z "$failed_pods" ]] ; then
+            echo "Failing pods:"
+            echo "$failed_pods"
+            echo ""
+            echo "Please check logs for the pods above"
+            true
+          fi
+          false
+        }
+        
+        # Delete existing jobs to prevent getting wrong log output
+        kubectl delete job "$RELEASE_NAME-post-release" -n "$NAMESPACE" --ignore-not-found > /dev/null
+
+        # Disable reference data if the required volume is not present.
+        reference_volume=$(kubectl get pv | grep --extended-regexp "$NAMESPACE/.*-reference-data") || true
+        reference_data_override=''
+        if [[ -z "$reference_volume" ]] ; then
+          reference_data_override='--set referenceData.skipMount=true'
+        fi
+
+        # Override Database credentials if specified
+        if [[ ! -z "$DB_ROOT_PASS" ]] ; then
+          db_root_pass_override="--set mariadb.rootUser.password=$DB_ROOT_PASS"
+        fi
+        if [[ ! -z "$DB_USER_PASS" ]] ; then
+          db_user_pass_override="--set mariadb.db.password=$DB_USER_PASS"
+        fi
+
+        # Add internal VPN if defined in environment
+        extra_noauthips=""
+        if [[ ! -z "$VPN_IP" ]] ; then
+          extra_noauthips="--set nginx.noauthips.vpn=${VPN_IP}/32"
+        fi
+        
+        # Pass VPC native setting if defined in environment
+        extra_vpcnative=""
+        if [[ ! -z "$VPC_NATIVE" ]] ; then
+          extra_vpcnative="--set cluster.vpcNative=${VPC_NATIVE}"
+        fi
+
+        #Extract backup ID from commit message; if present - push to Helm arguments
+        # backup=""
+        # backupID=$(git log --pretty='format:%Creset%s' -1 | cat | grep -oP "^\#DestroyCurrentAndRestoreBackup=\K([a-zA-Z0-9'/_-]+)$") || true
+        # if [[ ! -z "$backupID" ]] ; then
+        #   backup="--set backup.restoreId=${backupID} --set referenceData.enabled=false"
+        # fi
+
+        if [[ ! -z "${chart_version}" ]] ; then
+          version="--version ${chart_version}"
+        fi
+
+        helm upgrade --install "$RELEASE_NAME" "${chart_name}" \
+          --repo "${chart_repository}" \
+          $version \
+          --cleanup-on-fail \
+          --set environmentName="$SILTA_ENVIRONMENT_NAME" \
+          --set silta-release.branchName="${cicd_branch_name}" \
+          --set php.image="${DOCKER_REPO_HOST}/${DOCKER_REPO_PROJ}/${NAMESPACE}-php:${php_HASH}" \
+          --set nginx.image="${DOCKER_REPO_HOST}/${DOCKER_REPO_PROJ}/${NAMESPACE}-nginx:${nginx_HASH}" \
+          --set shell.image="${DOCKER_REPO_HOST}/${DOCKER_REPO_PROJ}/${NAMESPACE}-shell:${shell_HASH}" \
+          $extra_noauthips \
+          $extra_vpcnative \
+          $db_root_pass_override \
+          $db_user_pass_override \
+          $backup \
+          --set shell.gitAuth.repositoryUrl="${repository_url}" \
+          --set shell.gitAuth.keyserver.username="${GITAUTH_USERNAME}" \
+          --set shell.gitAuth.keyserver.password="${GITAUTH_PASSWORD}" \
+          --set clusterDomain="${CLUSTER_DOMAIN}" \
+          $reference_data_override \
+          --namespace="${NAMESPACE}" \
+          --values "${silta_config}" \
+          --timeout 15m &> helm-output.log &
+        pid=$!
+
+        echo -n "Waiting for containers to start"
+
+        TIME_WAITING=0
+        LOGS_SHOWN=false
+        while true; do
+          if [ $LOGS_SHOWN == false ] && kubectl get pod -l job-name="$RELEASE_NAME-post-release" -n "$NAMESPACE" --ignore-not-found | grep  -qE "Running|Completed" ; then
+            echo ""
+            echo "Deployment log:"
+            kubectl logs "job/$RELEASE_NAME-post-release" -n "$NAMESPACE" -f --timestamps=true || true
+            LOGS_SHOWN=true
+          fi
+
+          # Helm command is complete.
+          if ! ps -p "$pid" > /dev/null; then
+            if grep -q BackoffLimitExceeded helm-output.log ; then
+              # Don't show BackoffLimitExceeded, it confuses everyone.
+              show_failing_pods
+              echo "The post-release job failed, see log output above."
+            else
+              echo "Helm output:"
+              cat helm-output.log
+            fi
+            wait $pid
+            break
+          fi
+
+          if [ $TIME_WAITING -gt 300 ]; then
+            echo "Timeout waiting for resources."
+            show_failing_pods
+            exit 1
+          fi
+
+          echo -n "."
+          sleep 5
+          TIME_WAITING=$((TIME_WAITING+5))
+        done
+
+        # Wait for resources to be ready
+        # Get all deployments and statefulsets in the release and check the status of each one.
+        statefulsets=$(kubectl get statefulset -n "$NAMESPACE" -l "release=${RELEASE_NAME}" -o name)
+        if [ ! -z "$statefulsets" ]; then
+          echo "$statefulsets" | xargs -n 1 kubectl rollout status -n "$NAMESPACE"
+        fi
+        kubectl get deployment -n "$NAMESPACE" -l "release=${RELEASE_NAME}" -o name | xargs -n 1 kubectl rollout status -n "$NAMESPACE"
+
+        helm -n "$NAMESPACE" get notes "$RELEASE_NAME"

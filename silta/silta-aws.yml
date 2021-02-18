@@ -5,4 +5,3 @@ referenceData:
 # Should be overriden by CI
 cluster:
   type: aws
-
