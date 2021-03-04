@@ -25,27 +25,7 @@ mariadb:
   db:
     name: drupal
     user: drupal
-  master:
-    persistence:
-      # Database storage disk space allocation
-      # Request assistance from ops team after changing this on existing deployment.
-      size: 1G
-    resources:
-      requests:
-        cpu: 25m
-        memory: 384M
-      limits:
-        memory: 512M
-    affinity:
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          preference:
-            matchExpressions:
-            - key: cloud.google.com/gke-nodepool
-              operator: NotIn
-              values:
-              - static-ip
+  primary:
     configuration: |-
         [mysqld]
         skip-name-resolve
@@ -71,6 +51,29 @@ mariadb:
         port=3306
         socket=/opt/bitnami/mariadb/tmp/mysql.sock
         pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+
+  master:
+    persistence:
+      # Database storage disk space allocation
+      # Request assistance from ops team after changing this on existing deployment.
+      size: 1G
+    resources:
+      requests:
+        cpu: 25m
+        memory: 384M
+      limits:
+        memory: 512M
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+            - key: cloud.google.com/gke-nodepool
+              operator: NotIn
+              values:
+              - static-ip
+
 
 
 
