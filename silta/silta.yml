@@ -42,7 +42,7 @@ mariadb:
         log-error=/opt/bitnami/mariadb/logs/mysqld.log
         character-set-server=UTF8
         collation-server=utf8_unicode_ci
-        tx_isolation=READ-COMMITTED
+        transaction-isolation=READ-COMMITTED
         [client]
         port=3306
         socket=/opt/bitnami/mariadb/tmp/mysql.sock
