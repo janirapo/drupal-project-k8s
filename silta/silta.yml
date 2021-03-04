@@ -25,8 +25,9 @@ mariadb:
   db:
     name: drupal
     user: drupal
-  primary:
-    configuration: |-
+
+  master:
+    config: |-
         [mysqld]
         skip-name-resolve
         explicit_defaults_for_timestamp
@@ -51,8 +52,6 @@ mariadb:
         port=3306
         socket=/opt/bitnami/mariadb/tmp/mysql.sock
         pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
-
-  master:
     persistence:
       # Database storage disk space allocation
       # Request assistance from ops team after changing this on existing deployment.
