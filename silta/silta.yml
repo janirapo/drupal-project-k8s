@@ -26,7 +26,7 @@ mariadb:
     name: drupal
     user: drupal
   primary:
-    configuration: |-
+    configuration: |-c
         [mysqld]
         skip-name-resolve
         explicit_defaults_for_timestamp
