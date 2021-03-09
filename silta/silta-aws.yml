@@ -6,3 +6,13 @@ referenceData:
 cluster:
   type: aws
 
+exposeDomains:
+  test-traefik:
+    hostname: aws-traefik.silta-aws.wdr.io
+  test-alb:
+    hostname: aws-alb.silta-aws.wdr.io
+    ingress: aws-alb
+
+ingress:
+  aws-alb:
+    type: alb

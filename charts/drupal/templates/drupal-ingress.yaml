@@ -16,6 +16,10 @@ metadata:
     {{- end }}
     {{- end }}
 
+    {{- if eq $ingress.type "alb" }}
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    {{- end }}
+
     {{- $redirect_https := false }}
     {{- if (hasKey $ingress "redirect-https") }}
     {{- $redirect_https = (index $ingress "redirect-https") }}
@@ -99,6 +103,10 @@ metadata:
     {{- if eq $ingress.type "traefik" }}
     traefik.ingress.kubernetes.io/frontend-entry-points: "http"
     {{- end }}
+    {{- end }}
+    
+    {{- if eq $ingress.type "alb" }}
+    alb.ingress.kubernetes.io/scheme: internet-facing
     {{- end }}
     
     {{- $redirect_https := false }}
