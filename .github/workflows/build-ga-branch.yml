@@ -1,6 +1,9 @@
 name: Build and deploy
 
-on: push
+on: 
+  push:
+    branches:
+      - feature/aws-cluster/ga-build
 
 jobs:
   build-and-push:
