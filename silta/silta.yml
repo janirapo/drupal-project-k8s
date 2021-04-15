@@ -102,11 +102,11 @@ mariadb:
 shell:
     resources:
       requests:
-        cpu: 25m
-        memory: 384M
-      limits:
         cpu: 2000m
-        memory: 1024M
+        memory: 2000M
+      limits:
+        cpu: 4000m
+        memory: 4096M
 
 
 
