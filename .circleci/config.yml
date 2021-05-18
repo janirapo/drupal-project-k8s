@@ -35,7 +35,7 @@ workflows:
           # Use custom executor.
           executor: cicd80
 
-          deployment_timeout: 10m
+          deployment_timeout: "3m"
 
           # Use a local chart during development.
           chart_name: "./charts/drupal"
