@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  silta: silta/silta@dev:master
+  silta: silta/silta@dev:custom-timeouts
 
 executors:
   cicd73:
@@ -34,6 +34,8 @@ workflows:
 
           # Use custom executor.
           executor: cicd80
+
+          deployment_timeout: 30m
 
           # Use a local chart during development.
           chart_name: "./charts/drupal"
