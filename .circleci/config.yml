@@ -22,7 +22,7 @@ workflows:
           name: validate
           
           # Use custom executor.
-          executor: cicd80
+          executor: cicd73
           
           post-validation:
             - run:
@@ -33,7 +33,7 @@ workflows:
           name: build-deploy
 
           # Use custom executor.
-          executor: cicd80
+          executor: cicd73
 
           # Use a local chart during development.
           chart_name: "./charts/drupal"
