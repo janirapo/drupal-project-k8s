@@ -35,7 +35,8 @@ spec:
             port: 9000
         readinessProbe:
           exec:
-            command: ['/bin/bash', '-c', '/php-fpm-probe.sh']
+            command: ['/bin/bash', '-c', 'if [ {{ include "drupal.installation-in-progress-test" . }} ]; then exit 1; fi']
+            # command: ['/bin/bash', '-c', '/php-fpm-probe.sh']
         resources:
           {{- .Values.php.resources | toYaml | nindent 10 }}
 
