@@ -20,6 +20,7 @@ mounts:
 mariadb:
   master:
     persistence:
+      size: 5G
       storageClass: standard-rwo
 
 # Allow access from another namespace for testing purposes.
