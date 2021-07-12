@@ -20,7 +20,7 @@ mounts:
 mariadb:
   master:
     persistence:
-      storageClass: standard-rwo
+      size: 5G
 
 # Allow access from another namespace for testing purposes.
 silta-release:
