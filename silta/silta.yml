@@ -17,6 +17,11 @@ mounts:
   private-files:
     enabled: true
 
+mariadb:
+  master:
+    persistence:
+      storageClass: standard-rwo
+
 # Allow access from another namespace for testing purposes.
 silta-release:
   proxy:
