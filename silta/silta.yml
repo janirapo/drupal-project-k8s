@@ -17,12 +17,6 @@ mounts:
   private-files:
     enabled: true
 
-mariadb:
-  master:
-    persistence:
-      size: 5G
-      storageClass: premium-rwo
-
 # Allow access from another namespace for testing purposes.
 silta-release:
   proxy:

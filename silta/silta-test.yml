@@ -1,3 +1,13 @@
 # Configure reference data that will be used when creating new environments.
 referenceData:
   enabled: false
+
+mariadb:
+  master:
+    persistence:
+      size: 5G
+      storageClass: premium-rwo
+
+elasticsearch:
+  volumeClaimTemplate:
+    storageClassName: premium-rwo
