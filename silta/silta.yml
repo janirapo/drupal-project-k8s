@@ -37,3 +37,7 @@ silta-release:
         - namespaceSelector:
             matchLabels:
               name: drupal-project
+
+php:
+  postupgrade:
+    command: exec 1
