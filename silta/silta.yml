@@ -40,4 +40,4 @@ silta-release:
 
 php:
   postupgrade:
-    command: exec 1
+    command: "false"
