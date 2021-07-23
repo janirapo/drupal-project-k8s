@@ -6,7 +6,7 @@ tests:
     template: post-release.yaml
     asserts:
       - isKind:
-          of: Job
+          of: Pod
 
   - it: uses the right docker image
     template: post-release.yaml
