@@ -40,4 +40,9 @@ silta-release:
 
 php:
   postupgrade:
-    command: "false"
+    command: |
+      echo "Executed: postupgrade"
+  postinstall:
+    command: |
+      echo "Executed: postinstall"
+
