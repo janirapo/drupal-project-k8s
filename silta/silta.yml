@@ -41,7 +41,7 @@ silta-release:
 php:
   postupgrade:
     command: |
-      echo "Executed: postupgrade, 2nd commit"
+      exit 1
   postinstall:
     command: |
       echo "Executed: postinstall"
