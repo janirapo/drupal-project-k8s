@@ -37,3 +37,8 @@ silta-release:
         - namespaceSelector:
             matchLabels:
               name: drupal-project
+
+php:
+  postupgrade:
+    afterCommand: |
+      echo "Custom postupgrade trigger"
