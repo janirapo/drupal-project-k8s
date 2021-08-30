@@ -16,12 +16,12 @@ memcached:
 mounts:
   private-files:
     enabled: false
-  testing:
-    enabled: true
-    storage: 1G
-    mountPath: /app/test_shared
-    storageClassName: silta-shared
-    csiDriverName: csi-rclone
+  # testing:
+  #   enabled: true
+  #   storage: 1G
+  #   mountPath: /app/test_shared
+  #   storageClassName: silta-shared
+  #   csiDriverName: csi-rclone
 
 # Allow access from another namespace for testing purposes.
 silta-release:
