@@ -42,7 +42,8 @@ workflows:
           codebase-build:
             - silta/drupal-composer-install
             - silta/npm-install-build
-
+          release-suffix: longname
+          
           pre-release:
             - run:
                 name: Build local helm chart
