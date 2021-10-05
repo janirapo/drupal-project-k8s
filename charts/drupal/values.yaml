@@ -114,7 +114,10 @@ nginx:
     requests:
       cpu: 1m
       memory: 10M
-  
+    limits:
+      cpu: 50m
+      memory: 50M
+
   # Set of values to enable and use http basic authentication
   # It is implemented only for very basic protection (like web crawlers)
   basicauth:
@@ -168,6 +171,7 @@ php:
       cpu: 5m
       memory: 128M
     limits:
+      cpu: 200m
       memory: 512M
 
   fpm:
@@ -208,6 +212,7 @@ php:
         cpu: 500m
         memory: 512M
       limits:
+        cpu: 1000m
         memory: 512M
 
   # Post-upgrade hook.
@@ -351,7 +356,8 @@ referenceData:
       cpu: 1000m
       memory: 512M
     limits:
-      memory: 512M
+      cpu: 1500m
+      memory: 1024M
 
 # Parameters for sanitizing reference data with gdpr-dump.
 # Uses formatters from https://packagist.org/packages/fzaninotto/faker.
@@ -398,7 +404,8 @@ backup:
       cpu: 1000m
       memory: 512M
     limits:
-      memory: 512M
+      cpu: 1500m
+      memory: 1024M
 
 # Override the default values of the MariaDB subchart.
 # These settings are optimised for development environments.
@@ -411,6 +418,56 @@ mariadb:
     name: drupal
     user: drupal
   master:
+    config: |-
+        [mysqld]
+        skip-name-resolve
+        explicit_defaults_for_timestamp
+        basedir=/opt/bitnami/mariadb
+        plugin_dir=/opt/bitnami/mariadb/plugin
+        port=3306
+        socket=/opt/bitnami/mariadb/tmp/mysql.sock
+        tmpdir=/opt/bitnami/mariadb/tmp
+        max_allowed_packet=256M
+        bind-address=0.0.0.0
+        pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
+        log-error=/opt/bitnami/mariadb/logs/mysqld.log
+        character-set-server=UTF8
+        collation-server=utf8_unicode_ci
+        transaction-isolation=READ-COMMITTED
+        #set innodb_buffer_pool_size to 70/80% of the memory request
+        innodb_buffer_pool_size=384M
+        #set this to 1 per gigabyte of memory allocated in innodb_buffer_pool_size
+        innodb_buffer_pool_instances=1
+        innodb_log_buffer_size=8M
+        #normally should be 25% of innodb buffer size with 2 files of 12.5% each.
+        #here 48M is 12.5% OF 384M
+        innodb_log_file_size=48M
+        innodb_lock_wait_timeout=120
+        innodb_open_files=49152
+        innodb_flush_log_at_trx_commit=2
+        innodb_thread_concurrency=16
+        innodb_flush_method=O_DIRECT
+        table_open_cache=4000
+        table_definition_cache=1000
+        back_log=2048
+        tmp_table_size=64M
+        max_heap_table_size=32M
+        join_buffer_size=2M
+        #have_query_cache=NO
+        performance_schema=1
+        innodb_write_io_threads=16
+        #Silta seems to require this variable set to 0
+        #https://mariadb.com/kb/en/innodb-system-variables/#innodb_use_native_aio
+        innodb_use_native_aio=0
+        [client]
+        port=3306
+        socket=/opt/bitnami/mariadb/tmp/mysql.sock
+        default-character-set=UTF8
+        plugin_dir=/opt/bitnami/mariadb/plugin
+        [manager]
+        port=3306
+        socket=/opt/bitnami/mariadb/tmp/mysql.sock
+        pid-file=/opt/bitnami/mariadb/tmp/mysqld.pid
     persistence:
       # Database storage disk space allocation
       # Request assistance from ops team after changing this on existing deployment.
@@ -420,6 +477,7 @@ mariadb:
         cpu: 25m
         memory: 384M
       limits:
+        cpu: 200m
         memory: 512M
     affinity:
       nodeAffinity:
@@ -440,10 +498,16 @@ varnish:
     requests:
       cpu: 25m
       memory: 32Mi
+    limits:
+      cpu: 50m
+      memory: 128Mi
   image: eu.gcr.io/silta-images/varnish
   imageTag: 6-v0.1
   # https://varnish-cache.org/docs/trunk/users-guide/storage-backends.html
-  storageBackend: 'file,/var/lib/varnish/varnish_storage.bin,512M'
+  #we default to memory
+  storageBackend: 'malloc,32M'
+  #Extra params from Wundermachina best practices
+  varnishExtraParams: -p thread_pool_min=100 -p thread_pool_max=1000 -p thread_pool_timeout=300 -p lru_interval=1800 -p max_restarts=6 -p http_range_support=on -p http_max_hdr=128 -p http_req_hdr_len=20000 -p http_resp_hdr_len=20000 -p vcc_err_unref=off
   # Inject custom code into vcl_recv subroutine.
   vcl_recv_extra: ""
   # Html code for status 500 page.
@@ -481,6 +545,7 @@ elasticsearch:
       cpu: 200m
       memory: 512Mi
     limits:
+      cpu: 400m
       memory: 1Gi
 
   nodeAffinity:
@@ -507,6 +572,7 @@ memcached:
       cpu: 10m
       memory: 128Mi
     limits:
+      cpu: 50m
       memory: 128Mi
 
 # Mailhog service overrides
@@ -522,6 +588,9 @@ mailhog:
     requests:
       cpu: 1m
       memory: 10M
+    limits:
+      cpu: 5m
+      memory: 20M
 
 # Email via SMTP. Configuration is passed to containers as environment variables (SMTP_ADDRESS, SMTP_PORT, ..)
 smtp:

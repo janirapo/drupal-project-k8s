@@ -37,6 +37,8 @@ spec:
         env:
         - name: VARNISH_STORAGE_BACKEND
           value: {{ .Values.varnish.storageBackend | quote }}
+        - name: VARNISH_EXTRA_PARAMS
+          value: {{ .Values.varnish.varnishExtraParams | quote }}
         resources:
 {{ .Values.varnish.resources | toYaml | indent 10 }}
         volumeMounts:

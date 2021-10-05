@@ -7,14 +7,14 @@ tests:
     template: varnish-deployment.yaml
     set:
       varnish.enabled: true
-      varnish.storageBackend: 'type,/storage/location,size'
+      varnish.storageBackend: 'type,size'
     asserts: 
       - documentIndex: 0
         contains:
           path: 'spec.template.spec.containers[0].env'
           content:
             name: VARNISH_STORAGE_BACKEND
-            value: 'type,/storage/location,size'
+            value: 'type,size'
 
   - it: takes resource requests and limits
     template: varnish-deployment.yaml
