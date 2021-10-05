@@ -499,7 +499,7 @@ varnish:
       cpu: 25m
       memory: 32Mi
     limits:
-      cpu: 50m
+      cpu: 100m
       memory: 128Mi
   image: eu.gcr.io/silta-images/varnish
   imageTag: 6-v0.1
@@ -507,7 +507,7 @@ varnish:
   #we default to memory
   storageBackend: 'malloc,32M'
   #Extra params from Wundermachina best practices
-  varnishExtraParams: -p thread_pool_min=100 -p thread_pool_max=1000 -p thread_pool_timeout=300 -p lru_interval=1800 -p max_restarts=6 -p http_range_support=on -p http_max_hdr=128 -p http_req_hdr_len=20000 -p http_resp_hdr_len=20000 -p vcc_err_unref=off
+  varnishExtraParams: -p http_max_hdr=128 -p http_req_hdr_len=20000 -p http_resp_hdr_len=20000 -p vcc_err_unref=off
   # Inject custom code into vcl_recv subroutine.
   vcl_recv_extra: ""
   # Html code for status 500 page.
