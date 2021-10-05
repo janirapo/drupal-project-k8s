@@ -171,7 +171,6 @@ php:
       cpu: 5m
       memory: 128M
     limits:
-      cpu: 200m
       memory: 512M
 
   fpm:
@@ -545,7 +544,6 @@ elasticsearch:
       cpu: 200m
       memory: 512Mi
     limits:
-      cpu: 500m
       memory: 1Gi
 
   nodeAffinity:
@@ -572,7 +570,6 @@ memcached:
       cpu: 10m
       memory: 128Mi
     limits:
-      cpu: 100m
       memory: 256Mi
 
 # Mailhog service overrides
