@@ -23,6 +23,9 @@ varnish:
 elasticsearch:
   enabled: true
 
+mailhog:
+  enabled: true
+
 memcached:
   enabled: true
 

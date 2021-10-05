@@ -545,7 +545,7 @@ elasticsearch:
       cpu: 200m
       memory: 512Mi
     limits:
-      cpu: 400m
+      cpu: 500m
       memory: 1Gi
 
   nodeAffinity:
@@ -566,14 +566,14 @@ memcached:
   pdbMinAvailable: 0
   memcached:
     # This should be less than the memory limit, or memcached will crash.
-    maxItemMemory: 118
+    maxItemMemory: 64
   resources:
     requests:
       cpu: 10m
       memory: 128Mi
     limits:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 100m
+      memory: 256Mi
 
 # Mailhog service overrides
 # see: https://github.com/codecentric/helm-charts/blob/master/charts/mailhog/values.yaml
