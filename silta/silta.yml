@@ -6,6 +6,19 @@
 
 varnish:
   enabled: true
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2048Mi
+    limits:
+      cpu: 2000m
+      memory: 2560Mi
+  image: eu.gcr.io/silta-images/varnish
+  imageTag: 6-v0.1
+  # https://varnish-cache.org/docs/trunk/users-guide/storage-backends.html
+  #we default to memory
+  storageBackend: 'malloc,2048M'
+
 
 elasticsearch:
   enabled: true
