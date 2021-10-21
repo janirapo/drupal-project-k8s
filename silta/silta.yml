@@ -37,3 +37,12 @@ silta-release:
         - namespaceSelector:
             matchLabels:
               name: drupal-project
+
+mariadb:
+  enabled: false
+
+pxc-db:
+  enabled: true
+
+db:
+  primary: pxc-db
