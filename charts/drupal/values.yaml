@@ -502,6 +502,15 @@ varnish:
     .first_byte_timeout     = 300s;
     .connect_timeout        = 10s;
     .between_bytes_timeout  = 10s;
+  # Update varnish backends automatically on any kubernetes endpoints changes
+  watcher:
+    enabled: true
+    image: eu.gcr.io/silta-dev/drupal-project-k8s/varnish-watcher-test
+    imageTag: 6-v0.1
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
 
 elasticsearch:
   enabled: false

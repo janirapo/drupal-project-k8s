@@ -6,6 +6,9 @@
 
 varnish:
   enabled: true
+  # official image does not ship with header vmod
+  # image: ghcr.io/emgag/varnish
+  # imageTag: 6.6.1-1
 
 elasticsearch:
   enabled: true
@@ -43,3 +46,4 @@ nginx:
     # Show server host name as header
     add_header X-Backend-Server $hostname;
 
+replicas: 5

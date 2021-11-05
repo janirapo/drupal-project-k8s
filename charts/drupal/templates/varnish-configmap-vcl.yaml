@@ -11,7 +11,9 @@ data:
 
     import std;
     import directors;
-
+    # import header;
+    import cookie;
+    
     backend prod1_http1 {
       .host = "{{ .Release.Name }}-drupal";
       .port = "80";
@@ -51,8 +53,8 @@ data:
     sub vcl_init {
       # Called when VCL is loaded, before any requests pass through it.
       # Typically used to initialize VMODs.
-      new prod1 = directors.hash();
-      prod1.add_backend(prod1_http1, 1);
+      new prod = directors.hash();
+      prod.add_backend(prod1_http1, 1);
     }
 
     include "includes/vcl_recv.vcl";
@@ -110,6 +112,20 @@ data:
       if (req.http.Cookie) {
         hash_data(req.http.Cookie);
       }
+
+      # sticky cookie for backend affinity
+      # cookie.parse(req.http.cookie);
+      # if (cookie.get("backend")) {
+      #     set req.backend_hint = cluster
+      #     hash.backend(cookie.get("backend"));
+      # } else {
+      #     set req.backend_hint = cluster.backend();
+      # }
+      # if (! std.healthy(req.backend_hint)) {
+      #     std.log("not healthy");
+      #     set req.backend_hint = cluster.backend();
+      # }
+
     }
 
     sub vcl_hit {
@@ -223,6 +239,8 @@ data:
 
       # Allow items to be stale if needed.
       set beresp.grace = 2h;
+
+      set beresp.http.X-V-Backend = beresp.backend.name;
 
       return (deliver);
     }
@@ -527,6 +545,12 @@ data:
       unset resp.http.X-Drupal-Cache-Tags;
       unset resp.http.X-Drupal-Cache-Contexts;
       {{- end }}
+
+      # Append stickiness cookie
+      # if (req.http.backend) {
+      #     header.remove(resp.http.Set-Cookie,"^backend=.*$");
+      #     header.append(resp.http.Set-Cookie,"backend=" + resp.http.X-V-Backend + "; Expires=" + cookie.format_rfc1123(now, 60s) + "; path=/;");
+      # }
 
       return (deliver);
     }

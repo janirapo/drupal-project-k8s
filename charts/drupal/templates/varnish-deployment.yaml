@@ -23,6 +23,7 @@ spec:
         configMap-checksum: {{ include (print $.Template.BasePath "/varnish-configmap-vcl.yaml") . | sha256sum }}
     spec:
       enableServiceLinks: false
+      serviceAccountName: {{ .Release.Name }}-varnishw
       containers:
       - name: varnish
         image: {{ .Values.varnish.image }}:{{ .Values.varnish.imageTag }}
@@ -64,6 +65,20 @@ spec:
           mountPath: "/etc/varnish/secret"
           subPath: control_key
           readOnly: true
+      - name: watcher
+        image: {{ .Values.varnish.watcher.image }}:{{ .Values.varnish.watcher.imageTag }}
+        env:
+        - name: WATCH_NS
+          value: {{ .Release.Namespace }}
+        - name: WATCH_SVC
+          value: {{ .Release.Name }}-drupal
+        volumeMounts:
+        - name: varnish-secret
+          mountPath: "/etc/varnish/secret"
+          subPath: control_key
+          readOnly: true
+        resources:
+{{ .Values.varnish.watcher.resources | toYaml | indent 10 }}
       volumes:
       - name: varnish-vcl
         configMap:
