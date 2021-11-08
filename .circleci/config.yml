@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  silta: silta/silta@dev:master
+  silta: silta/silta@dev:shortening-exceptions
 
 executors:
   cicd73:
@@ -42,6 +42,7 @@ workflows:
           codebase-build:
             - silta/drupal-composer-install
             - silta/npm-install-build
+          release-suffix: suffix-testing12
 
           pre-release:
             - run:
