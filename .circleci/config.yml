@@ -42,6 +42,7 @@ workflows:
           codebase-build:
             - silta/drupal-composer-install
             - silta/npm-install-build
+          release-suffix: release1
 
           pre-release:
             - run:
