@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  silta: silta/silta@dev:release-name-shorten
+  silta: silta/silta@dev:shortening-exceptions
 
 executors:
   cicd73:
