@@ -180,7 +180,13 @@ nginx:
   comp_level: 6
 
   # Retry file lookup in 5 seconds (filesystem sync workaround)
-  # retry404s: 5
+  # retry404s:
+  #   delay: 5
+  #   paths:
+  #     - "^/sites/(.*)/files/(?:css|js)/(.*).(?:css|js)$"
+
+  # Allow load-balancer to pod session affinity for consecutive requests. Does not work with varnish enabled.
+  sessionAffinity: false
 
   # Extra configuration block in server context.
   serverExtraConfig: |
@@ -469,10 +475,10 @@ varnish:
       cpu: 25m
       memory: 32Mi
   image: eu.gcr.io/silta-images/varnish
-  imageTag: 6-v0.1
-  # https://varnish-cache.org/docs/6.0/users-guide/storage-backends.html
+  imageTag: 6-v0.2
+  # https://varnish-cache.org/docs/6.6/users-guide/storage-backends.html
   storageBackend: 'file,/var/lib/varnish/varnish_storage.bin,512M'
-  # https://varnish-cache.org/docs/6.0/reference/varnishd.html#list-of-parameters
+  # https://varnish-cache.org/docs/6.6/reference/varnishd.html#list-of-parameters
   extraParams: ""
   # Inject custom code into vcl_recv subroutine.
   vcl_recv_extra: ""
@@ -482,7 +488,7 @@ varnish:
   vcl_extra_cookies: ""
   # Do not cache files larger than 3 megabytes (use integers).
   cache_skip_size: 3
-  # https://varnish-cache.org/docs/6.0/reference/vcl.html#backend-definition
+  # https://varnish-cache.org/docs/6.6/reference/vcl.html#backends-and-health-probes
   backend_config: |
     .max_connections = 300;
     .probe = {
@@ -569,11 +575,10 @@ mailhog:
       memory: 10M
 
 # Email via SMTP. Configuration is passed to containers as environment variables (SMTP_ADDRESS, SMTP_PORT, ..)
+# see: https://github.com/wunderio/silta/blob/master/docs/silta-examples.md#sending-e-mail
 smtp:
   enabled: false
   # address: smtp.example.com:25
-  # tls: false
-  # starttls: false
   # username: ""
   # password: ""
 
@@ -615,8 +620,11 @@ solr:
         - ReadWriteOnce
 
 db:
+  # Available options: mariadb, pxc-db
   primary: mariadb
 
+# Percona XtraDB Cluster
+# see: https://github.com/percona/percona-helm-charts/blob/main/charts/pxc-db/values.yaml
 pxc-db:
   enabled: false
   allowUnsafeConfigurations: false
@@ -624,6 +632,7 @@ pxc-db:
     size: 3
     expose:
       enabled: false
+    disableTLS: true
     resources:
       requests:
         cpu: 250m

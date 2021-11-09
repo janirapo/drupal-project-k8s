@@ -314,10 +314,10 @@ done
   {{- end }}
 
   {{ include "drupal.wait-for-db-command" . }}
+  {{ include "drupal.create-db" . }}
 
   {{ if .Release.IsInstall }}
     touch {{ .Values.webRoot }}/sites/default/files/_installing
-    {{ include "drupal.create-db" . }}
     {{- if .Values.referenceData.enabled }}
       {{ include "drupal.import-reference-db" . }}
     {{- end }}
@@ -547,9 +547,4 @@ set -e
 # Trigger lagoon entrypoint scripts if present.
 if [ -f /lagoon/entrypoints.sh ] ; then /lagoon/entrypoints.sh ; fi
 
-{{- end }}
-
-{{- define "pxc-name" }}
-{{- $releaseNameHash := sha256sum .Release.Name | trunc 3 }}
-{{- (gt (len .Release.Name) 22) | ternary ( print (.Release.Name | trunc 18) print $releaseNameHash ) .Release.Name }}
 {{- end }}
