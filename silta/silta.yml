@@ -11,7 +11,13 @@ elasticsearch:
   enabled: true
 
 memcached:
-  enabled: false
+  enabled: true
+
+mailhog:
+  enabled: true
+
+solr:
+  enabled: true
 
 mounts:
   private-files:
