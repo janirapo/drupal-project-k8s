@@ -48,4 +48,3 @@ nginx:
   extraConfig: |
     # Show server host name as header
     add_header X-Backend-Server $hostname;
-
