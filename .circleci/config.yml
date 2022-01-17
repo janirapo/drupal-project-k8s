@@ -67,6 +67,7 @@ workflows:
                 - /feature\/aks-cluster\/.*/
                 - feature/Traefik-ratelimiting
                 - feature/cert-manager-upgrade
+                - k8s
 
       - silta/drupal-build-deploy:
           # Extend the build-deploy configuration for the silta-test cluster environment.
