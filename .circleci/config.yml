@@ -105,6 +105,7 @@ workflows:
               only: 
                 - feature/aks-cluster
                 - /feature\/aks-cluster\/.*/
+                - k8s
 
       - silta/drupal-build-deploy:
           # Extend the build-deploy configuration for the production environment.
