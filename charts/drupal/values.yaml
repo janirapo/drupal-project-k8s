@@ -70,8 +70,7 @@ autoscaling:
 #        enabled: false
 exposeDomains:
   example-aks-ingress:
-    #hostname: aks-ingress-test.silta-aks.wdr.io
-    ip: 
+    hostname: test.beta.mielenterveystalo.fi
     ingress: aks
 
 exposeDomainsDefaults:
@@ -93,8 +92,8 @@ ingress:
             period: 1s
             average: 32
             burst: 90
-  # gce:
-  #   type: gce
+  gce:
+    type: gce
     # The name of the reserved static IP address.
     # It is best to first reserve the IP address and then add it here.
     # staticIpAddressName: null

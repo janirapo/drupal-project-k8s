@@ -15,8 +15,7 @@ silta-release:
 ## Azure Application Gateway Ingress
 exposeDomains:
   example-aks-ingress:
-    #hostname: aks-ingress-test.silta-aks.wdr.io
-    ip: 20.103.155.237
+    hostname: test.beta.mielenterveystalo.fi
     ingress: aks
 
 ingress:
