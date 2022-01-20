@@ -6,11 +6,11 @@ silta-release:
 
 # Main domain of the cluster.
 # Subdomains of this domain will be created automatically for each environment.
-clusterDomain: "silta.wdr.io"
+clusterDomain: "mielenterveystalo.fi"
 
 # An optional human-readable label for the project, defaults to the repository name.
 # This name is mainly used to create nice subdomains for each environment.
-projectName: ""
+projectName: "cms"
 
 # An optional human-readable label for the environment, defaults to the release name.
 # We typically pass the branch name when we build dedicated environments per branch.
@@ -68,7 +68,11 @@ autoscaling:
 #    hostname: insecure.example.com
 #      ssl:
 #        enabled: false
-exposeDomains: {}
+exposeDomains:
+  example-aks-ingress:
+    #hostname: aks-ingress-test.silta-aks.wdr.io
+    ip: 
+    ingress: aks
 
 exposeDomainsDefaults:
   ingress: default
@@ -89,14 +93,16 @@ ingress:
             period: 1s
             average: 32
             burst: 90
-  gce:
-    type: gce
+  # gce:
+  #   type: gce
     # The name of the reserved static IP address.
     # It is best to first reserve the IP address and then add it here.
     # staticIpAddressName: null
     # Custom ingress annotations
     # extraAnnotations:
     #   networking.gke.io/suppress-firewall-xpn-error: "true"
+  aks:
+    type: azure/application-gateway
 
 # Infrastructure related settings.
 cluster:
