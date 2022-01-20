@@ -68,10 +68,7 @@ autoscaling:
 #    hostname: insecure.example.com
 #      ssl:
 #        enabled: false
-exposeDomains:
-  example-aks-ingress:
-    hostname: test.beta.mielenterveystalo.fi
-    ingress: aks
+exposeDomains: {}
 
 exposeDomainsDefaults:
   ingress: default
