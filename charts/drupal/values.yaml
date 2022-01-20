@@ -6,11 +6,11 @@ silta-release:
 
 # Main domain of the cluster.
 # Subdomains of this domain will be created automatically for each environment.
-clusterDomain: "mielenterveystalo.fi"
+clusterDomain: "silta.wdr.io"
 
 # An optional human-readable label for the project, defaults to the repository name.
 # This name is mainly used to create nice subdomains for each environment.
-projectName: "cms"
+projectName: ""
 
 # An optional human-readable label for the environment, defaults to the release name.
 # We typically pass the branch name when we build dedicated environments per branch.
@@ -97,8 +97,6 @@ ingress:
     # Custom ingress annotations
     # extraAnnotations:
     #   networking.gke.io/suppress-firewall-xpn-error: "true"
-  aks:
-    type: azure/application-gateway
 
 # Infrastructure related settings.
 cluster:
