@@ -1,6 +1,8 @@
-# Configure reference data that will be used when creating new environments.
+# Main domain of the cluster.
+clusterDomain: "beta.mielenterveystalo.fi"
+
 referenceData:
-  enabled: true
+  enabled: false
   referenceEnvironment: 'feature/aks-cluster/reference'
 
 # Should be overriden by CI
@@ -12,31 +14,120 @@ silta-release:
   proxy:
     enabled: false
 
-## Azure Application Gateway Ingress
-exposeDomains:
-  example-aks-ingress:
-    hostname: test.beta.mielenterveystalo.fi
-    ingress: aks
+# https://github.com/helm/charts/blob/master/stable/traefik/values.yaml
+traefik:
+  loadBalancerIP: ****
+  service:
+    annotations:
+      "service.beta.kubernetes.io/azure-load-balancer-resource-group": "RG_D_MTTALO_AKSCLUS"
+  rbac:
+    enabled: true
+  replicas: 1
+  ssl:
+    enabled: false
+    #enforced: false
+    ## Values from Mozilla SSL Configuration Generator
+    ## https://ssl-config.mozilla.org/#server=traefik&server-version=1.7.20&config=intermediate
+    #tlsMinVersion: "VersionTLS12"
+    #cipherSuites:
+    #  - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    #  - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    #  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    #  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    #  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+    #  - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+  timeouts:
+    forwarding:
+      dialTimeout: "60s"
+      responseHeaderTimeout: "60s"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128M
+    limits:
+      memory: 512M
 
-ingress:
-  aks:
-    type: azure/application-gateway
+ssl:
+  enabled: false
+  #email: fi.support@wunder.io
+  #issuer: letsencrypt
+  
+# https://github.com/wunderio/charts/blob/master/csi-rclone/values.yaml
+csi-rclone:
+  enabled: false
+  # priorityClassName: "high-priority"
+  # # Use silta cluster gke credentials. This is used when remote type is set to "google cloud storage".
+  # useGkeAuth: false
+  # # Do not allow csi-rclone subchart to install default secret because we want to generate it ourselves.
+  # defaultParams: false
+  # storageClass:
+  #   name: "silta-shared"
+  # params:
+  #   remote: "s3"
+  #   remotePath: "projectname"
+  #   
+  #   # Minio as S3 provider
+  #   s3-provider: "Minio"
+  #   s3-endpoint: "http://silta-cluster-minio:9000"
+  #   # Default credentials of minio chart https://github.com/minio/charts/blob/master/minio/values.yaml
+  #   s3-access-key-id: "YOURACCESSKEY"
+  #   s3-secret-access-key: "YOURSECRETKEY"
+  # # nodePlugin:
+  # #  kubeletBasePath: "/var/lib/kubelet"
 
-### CSI Storage overrides for AKS / Filestore
+minio:
+  enabled: false
+  resources:
+    requests:
+      memory: 256M
+  persistence:
+    size: 5Gi
 
-# shell:
-#   mount:
-#     storageClassName: azurefile-csi
-#     storage: 50M
+gitAuth:
+  enabled: false
+  #scope: 'https://github.com/wunderio'
+  #loadBalancerIP: ****
+  #annotations:
+  #  "service.beta.kubernetes.io/azure-load-balancer-resource-group": "siltaResourceGroup"
+  ## Reusing our prod keyserver
+  #keyserver: 
+  #  url: 'https://keys.****'
+  #  username: ****
+  #  password: '****'
+#
+  #allowedIps:
+  #- 194.89.156.118/32
+  # resources:
+  #   requests:
+  #     cpu: 50m
+  #     memory: 50M
+  # annotations:
+  #   - "metallb.universe.tf/allow-shared-ip": allow-shared
 
-# mounts:
-#   public-files:
-#     storageClassName: azurefile-csi
-#   private-files:
-#     storageClassName: azurefile-csi
+sshKeyServer:
+  gitauthApiToken: '****'
+  apiUsername: '****'
+  apiPassword: '****'
 
-# referenceData:
-#   storageClassName: azurefile-csi
+# Deployment remover
+deploymentRemover:
+  enabled: false
 
-# backup:
-#   storageClassName: azurefile-csi
+cert-manager:
+  enabled: false
+  # email: 'fi.support@wunder.io'
+  # webhook:
+  #   enabled: false
+  #   injectAPIServerCA: false
+
+silta-proxy:
+  enabled: true
+  # nodeSelector:
+  #   cloud.google.com/gke-nodepool: static-ip
+  # tolerations:
+  #   - key: cloud.google.com/gke-nodepool
+  #     operator: Equal
+  #     value: static-ip
+
+instana-agent:
+  enabled: false
