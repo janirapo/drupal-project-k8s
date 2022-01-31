@@ -13,11 +13,12 @@ silta-release:
     enabled: false
 
 shell:
-  gitAuth:
-    keyserver:
-      username: test
-      password: test
-      repositoryUrl: http://localhost
+  enabled: false
+  #gitAuth:
+  #  keyserver:
+  #    username: test
+  #    password: test
+  #    repositoryUrl: http://localhost
 
 ## Azure Application Gateway Ingress
 # exposeDomains:
