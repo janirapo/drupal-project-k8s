@@ -12,6 +12,9 @@ silta-release:
   proxy:
     enabled: false
 
+shell:
+  enabled: false
+
 ## Azure Application Gateway Ingress
 # exposeDomains:
 #   example-aks-ingress:
